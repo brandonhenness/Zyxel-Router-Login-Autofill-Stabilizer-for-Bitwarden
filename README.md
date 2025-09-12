@@ -1,7 +1,3 @@
-Great — here’s the updated `README.md` with a **screenshot section** added so it matches the style of your VSIX README. I used a placeholder filename for now; you can drop in an actual screenshot later.
-
----
-
 # Zyxel Router: Bitwarden Autofill Fix
 
 [![Greasy Fork](https://img.shields.io/badge/Greasy%20Fork-View%20Script-blue)](https://greasyfork.org/en/scripts/546371-zyxel-ex7710-b0-login-autofill-stabilizer-bitwarden)
