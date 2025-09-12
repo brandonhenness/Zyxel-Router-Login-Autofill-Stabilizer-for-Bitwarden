@@ -8,7 +8,7 @@
 // @run-at       document-idle
 // @noframes
 // @grant        none
-// @license      MIT
+// @license      GPL-3.0-only; https://www.gnu.org/licenses/gpl-3.0.txt
 // ==/UserScript==
  
 (function () {
