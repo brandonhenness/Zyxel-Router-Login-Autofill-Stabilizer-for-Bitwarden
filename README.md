@@ -58,18 +58,12 @@ This script makes Bitwarden autofill work reliably on Zyxel router login pages.
 
 ---
 
-## 🛠 Notes
+## ✅ Known Working Models
 
-* Confirmed working with **EX7710-B0** and **EX5601-T0**.
-* Should work with other Zyxel routers that use the same login form selectors.
-* If your router uses different selectors, you can adjust them in the script header.
+* Zyxel **EX7710-B0**
+* Zyxel **EX5601-T0**
 
----
-
-## 🙌 Community Feedback
-
-> “Thankyou, thankyou, thankyou! This works beautifully out of the box with my EX5601-T0… I was overjoyed to find this.”
-> — *Pete Hepple*
+> If you confirm this script works on other Zyxel models, feel free to share so they can be added here.
 
 ---
 
