@@ -1,0 +1,156 @@
+// ==UserScript==
+// @name         Zyxel EX7710-B0 Login Autofill Stabilizer (Bitwarden)
+// @namespace    io.zyxel.autofill
+// @version      1.0.1
+// @description  Keeps the unmasked password field visible and mirrors Bitwarden’s value into all password inputs just before submit. No storage, no typing simulation.
+// @match        http://192.168.1.1/*
+// @match        https://192.168.1.1/*
+// @run-at       document-idle
+// @noframes
+// @grant        none
+// @license      MIT
+// ==/UserScript==
+ 
+(function () {
+  'use strict';
+ 
+  const SEL = {
+    user: '#username',
+    passCandidates: '#userpassword, .maskPassword, .unmaskPassword',
+    passMask: '.maskPassword',
+    passUnmask: '.unmaskPassword',
+    eye: '#userpassword_maskCheck',
+    loginBtn: '#loginBtn',
+    form: 'form.form-login'
+  };
+ 
+  const state = { user: '', pw: '' };
+ 
+  const $ = (s, root = document) => root.querySelector(s);
+  const $$ = (s, root = document) => Array.from(root.querySelectorAll(s));
+  const fire = (el, type, opts = {}) => el && el.dispatchEvent(new Event(type, { bubbles: true, cancelable: true, ...opts }));
+  const keyup = (el) => el && el.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, cancelable: true }));
+  const setVal = (el, v) => {
+    if (!el || el.value === v) return;
+    el.value = v;
+    fire(el, 'input');
+    keyup(el);
+    fire(el, 'change');
+  };
+  const passInputs = () => $$(SEL.passCandidates).filter((el) => el instanceof HTMLInputElement);
+ 
+  const preferUnmasked = () => {
+    const eye = $(SEL.eye);
+    const m = $(SEL.passMask);
+    const u = $(SEL.passUnmask);
+    if (!eye || !m || !u) return;
+    const maskedVisible = m.style.display !== 'none';
+    const unmaskedVisible = u.style.display !== 'none';
+    if (maskedVisible && !unmaskedVisible) eye.click();
+  };
+ 
+  const hookCaptureOnce = (el, isUser) => {
+    if (!el || el.__zyCap) return;
+    el.__zyCap = true;
+    const update = () => {
+      const v = el.value || '';
+      if (!v) return;
+      if (isUser) state.user = v; else state.pw = v;
+    };
+    el.addEventListener('input', update, true);
+    el.addEventListener('change', update, true);
+    update();
+  };
+ 
+  const wireCapture = () => {
+    hookCaptureOnce($(SEL.user), true);
+    passInputs().forEach((el) => hookCaptureOnce(el, false));
+  };
+ 
+  const applyOnce = () => {
+    const uEl = $(SEL.user);
+    if (state.user && uEl) setVal(uEl, state.user);
+    if (state.pw) passInputs().forEach((el) => setVal(el, state.pw));
+  };
+ 
+  const installPreSubmit = () => {
+    const pre = () => {
+      preferUnmasked();
+      applyOnce();
+    };
+    document.addEventListener('pointerdown', (e) => {
+      const btn = e.target.closest && e.target.closest(SEL.loginBtn);
+      if (btn) pre();
+    }, true);
+    document.addEventListener('mousedown', (e) => {
+      const btn = e.target.closest && e.target.closest(SEL.loginBtn);
+      if (btn) pre();
+    }, true);
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      if ($(SEL.form)) pre();
+    }, true);
+    document.addEventListener('submit', (e) => {
+      if (e.target.matches && e.target.matches(SEL.form)) pre();
+    }, true);
+  };
+ 
+  const installGlobalCapture = () => {
+    const armKeepAlive = (() => {
+      let rafId = null;
+      let until = 0;
+      const tick = () => {
+        applyOnce();
+        if (performance.now() < until) {
+          rafId = requestAnimationFrame(tick);
+        } else {
+          rafId = null;
+        }
+      };
+      return (ms) => {
+        until = performance.now() + ms;
+        if (!rafId) rafId = requestAnimationFrame(tick);
+      };
+    })();
+ 
+    document.addEventListener('input', (e) => {
+      const t = e.target;
+      if (!(t instanceof HTMLInputElement)) return;
+      if (t.matches(SEL.user) && t.value) {
+        state.user = t.value;
+        armKeepAlive(5000);
+      }
+      if (t.matches(SEL.passCandidates) && t.value) {
+        state.pw = t.value;
+        armKeepAlive(5000);
+      }
+    }, true);
+ 
+    document.addEventListener('change', (e) => {
+      const t = e.target;
+      if (!(t instanceof HTMLInputElement)) return;
+      if (t.matches(SEL.user) && t.value) state.user = t.value;
+      if (t.matches(SEL.passCandidates) && t.value) state.pw = t.value;
+    }, true);
+ 
+    const mo = new MutationObserver(() => {
+      preferUnmasked();
+      wireCapture();
+      if (state.user || state.pw) armKeepAlive(1500);
+    });
+    mo.observe(document.documentElement, { childList: true, subtree: true });
+  };
+ 
+  const init = () => {
+    preferUnmasked();
+    wireCapture();
+    installGlobalCapture();
+    installPreSubmit();
+  };
+ 
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
+})();
