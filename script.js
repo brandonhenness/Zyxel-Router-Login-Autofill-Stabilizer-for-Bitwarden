@@ -1,14 +1,14 @@
 // ==UserScript==
-// @name         Zyxel EX7710-B0 Login Autofill Stabilizer (Bitwarden)
+// @name         Zyxel Router: Bitwarden Autofill Fix
 // @namespace    io.zyxel.autofill
-// @version      1.0.1
-// @description  Keeps the unmasked password field visible and mirrors Bitwarden’s value into all password inputs just before submit. No storage, no typing simulation.
+// @version      1.0.2
+// @description  Fixes Bitwarden autofill on Zyxel router login pages (EX7710-B0, EX5601-T0, and similar). Prevents the router UI from deleting the password field and ensures the correct value is submitted.
 // @match        http://192.168.1.1/*
 // @match        https://192.168.1.1/*
 // @run-at       document-idle
 // @noframes
 // @grant        none
-// @license      GPL-3.0-only; https://www.gnu.org/licenses/gpl-3.0.txt
+// @license      GPL-2.0-only; https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
 // ==/UserScript==
  
 (function () {
